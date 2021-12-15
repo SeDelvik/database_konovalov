@@ -1,0 +1,7 @@
+.button {
+    -fx-background-color: lightgrey;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+    -fx-text-fill: white;
+    -fx-text-fill: #395306; /*color*/
+}

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
+   <center>
+      <ListView fx:id="viewData" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+   </center>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#showAll" text="Показать всё" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem fx:id="closeBut" mnemonicParsing="false" onAction="#exitAct" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+                  <MenuItem fx:id="addNewBut" mnemonicParsing="false" text="New" />
+              <MenuItem fx:id="deleteBut" mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <left>
+      <Accordion prefHeight="374.0" prefWidth="124.0" BorderPane.alignment="CENTER">
+        <panes>
+          <TitledPane text="первая часть">
+               <content>
+                  <VBox alignment="TOP_CENTER" prefHeight="322.0" prefWidth="190.0" spacing="2.0">
+                     <children>
+                        <Button id="button" mnemonicParsing="false" onAction="#findNumber" prefHeight="26.0" prefWidth="144.0" text="Найти телефон">
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#findOrg" prefHeight="26.0" prefWidth="286.0" text="Найти по номеру" />
+                     </children>
+                     <padding>
+                        <Insets top="1.0" />
+                     </padding>
+                  </VBox>
+               </content>
+          </TitledPane>
+          <TitledPane text="Вторая часть">
+               <content>
+                  <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0">
+                     <children>
+                        <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="188.0" text="Button" />
+                     </children>
+                     <padding>
+                        <Insets top="1.0" />
+                     </padding>
+                  </VBox>
+               </content>
+          </TitledPane>
+        </panes>
+      </Accordion>
+   </left>
+    <stylesheets>
+        <URL value="@Style.css" />
+    </stylesheets>
+   <right>
+      <VBox alignment="TOP_CENTER" prefHeight="374.0" prefWidth="149.0" BorderPane.alignment="CENTER">
+         <children>
+            <Text fx:id="dataTextObserve" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+         </children>
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+         </padding>
+      </VBox>
+   </right>
+</BorderPane>
