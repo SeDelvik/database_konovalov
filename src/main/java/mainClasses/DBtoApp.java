@@ -35,9 +35,9 @@ public class DBtoApp {
 
         try {
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  " +
-                    "FROM info,company, type_company,type_info " +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id "/*+
+            ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\", main_address.address ,type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
+                    "FROM info,company, type_company,type_info , main_address \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id "/*+
                     "and info.active_or_not = true"*/);
             list = resultSetToOrganisation(resultSet);
 
@@ -129,11 +129,12 @@ public class DBtoApp {
     public ArrayList<String> getAllTypeInformationWithoutPhoneNumber(){
         ArrayList<String> output = new ArrayList<>();
         output.add("type");
+        output.add("main address");
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("select *\n" +
                     "from type_info\n" +
-                    "where column_names !~ '(.*телефон.*|.*phone number.*)'");
+                    "where column_names !~ '"+numberRegex+"'");
             while(resultSet.next()){
                 output.add(resultSet.getString(2));
             }
@@ -159,20 +160,55 @@ public class DBtoApp {
 
         Statement statement = connection.createStatement();
         ResultSet resultSet;
-        if (data.get("type data").equals("type")){ //тип организации или другое
-            resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
+        String sqlZapr;
+        switch (data.get("type data")){
+            case("type"):
+                sqlZapr = "select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info , main_address\n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                        "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
+                resultSet = statement.executeQuery(sqlZapr);
+                break;
+            case("main address"):
+                sqlZapr = "select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info , main_address\n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                        "and main_address.address ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
+                resultSet = statement.executeQuery(sqlZapr);
+                break;
+            default:
+                resultSet = statement.executeQuery("select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info , main_address\n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                        "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
+
+                break;
+        }
+        /*if (data.get("type data").equals("type")){ //тип организации или другое
+            *//*resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
-                    "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
+                    "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*//*
+            String sqlZapr = "select distinct company.company_id\n" +
+                    "FROM info,company, type_company,type_info , main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
+            resultSet = statement.executeQuery(sqlZapr);
         }
         else{
-            resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
+            *//*resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
+                    "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*//*
+            resultSet = statement.executeQuery("select distinct company.company_id\n" +
+                    "FROM info,company, type_company,type_info , main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
                     "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
-        }
+        }*/
 
-        output = resultSetToOrganisation(resultSet);
+        //output = resultSetToOrganisation(resultSet);
+        output = getAllData(resultSet);
+
         /*String type = "";
         if (data.get("type").equals("All")){
             type = ".*";
@@ -202,12 +238,13 @@ public class DBtoApp {
             if (orgTest==null){
                 orgTest = new Organisation(id);
                 orgTest.getData().put("Name", resultSet.getString(2));
-                orgTest.getData().put("Type",resultSet.getString(3));
+                orgTest.getData().put("Type",resultSet.getString(2));
+                orgTest.getData().put("Main Address",resultSet.getString(3));
                 output.add(orgTest);
             }
-            String dataName = resultSet.getString(4);
-            String data = resultSet.getString(5);
-            if(resultSet.getBoolean(6)) {
+            String dataName = resultSet.getString(5);
+            String data = resultSet.getString(6);
+            if(resultSet.getBoolean(7)) {
                 output.stream().filter(x -> x.getId() == id).forEach(x -> {
                     x.getData().put(dataName, data);
                 });
@@ -242,17 +279,45 @@ public class DBtoApp {
         //ResultSet resultSet;
         try{
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
+        /*    ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
                     "\tand type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'");
-            output = resultSetToOrganisation(resultSet);
+            output = resultSetToOrganisation(resultSet);*/
+            ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
+                    "FROM info,company, type_company,type_info , main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "and type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'");
+            output = getAllData(resultSet);
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
         //output = resultSetToOrganisation(redultSet);
+        return output;
+    }
+    /**
+     * получить все данные через ResultSet по id организации
+     * */
+    public ArrayList<Organisation> getAllData(ResultSet resultSet){
+        String id = "(";
+        ArrayList<Organisation> output = new ArrayList<>();
+        try {
+            while (resultSet.next()) {
+                id = id+resultSet.getInt(1)+"|";
+            }
+            id = id.substring(0,id.length()-1)+")";
+            if(id.length()<2) return output;
+            ResultSet subResultSet = connection.createStatement().executeQuery("SELECT company.company_id, company.\"name\", main_address.address ,type_company.type_name, type_info.column_names, info.\"data\", info.active_or_not \n" +
+                    "FROM info,company, type_company,type_info , main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "and cast (info.company_id as character(32) ) ~ '"+id+"'");
+
+            output = resultSetToOrganisation(subResultSet);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return output;
     }
 

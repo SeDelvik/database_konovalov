@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/13" xmlns:fx="http://javafx.com/fxml/1">
    <center>
       <ListView fx:id="viewData" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </center>
@@ -66,7 +66,7 @@
                <content>
                   <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0">
                      <children>
-                        <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="188.0" text="Button" />
+                        <Button mnemonicParsing="false" onAction="#findInExtraInfo" prefHeight="26.0" prefWidth="188.0" text="поиск по доп. информации" />
                      </children>
                      <padding>
                         <Insets top="1.0" />

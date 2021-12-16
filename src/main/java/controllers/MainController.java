@@ -1,5 +1,6 @@
 package controllers;
 
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -47,6 +48,10 @@ public class MainController implements Initializable {
 
     public void exitAct(){
         Platform.exit();
+    }
+
+    public void findInExtraInfo(){
+
     }
 
     public void findNumber(){
