@@ -51,7 +51,28 @@ public class MainController implements Initializable {
     }
 
     public void findInExtraInfo(){
+        try {
+            HashMap<String,String> hash = new HashMap<>();
+            //ArrayList<String> list = connector.getAllTypeOrganisation();
+            //ArrayList<String> list = connector.getAllTypeInformationWithoutPhoneNumber();
 
+            Stage stage = new Stage();
+            stage.setTitle("?");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/FindInExtraInfo.fxml"));
+            FindInExtraInfoController findInExtraInfoController = new FindInExtraInfoController(hash);
+            loader.setController(findInExtraInfoController);
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.showAndWait();
+
+            if (!hash.isEmpty()){
+                System.out.println(hash);
+                filteredObjects(hash);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void findNumber(){
@@ -85,6 +106,9 @@ public class MainController implements Initializable {
         try {
             if(params.containsKey("name")){
                 obs = FXCollections.observableArrayList(connector.getFilteredNumber(params));
+            }
+            else if(params.containsKey("dataAll")){
+                obs = FXCollections.observableArrayList(connector.findInAllExtraData(params.get("dataAll")));
             }
             else{
                 obs = FXCollections.observableArrayList(connector.getOrganisationToNum(params));

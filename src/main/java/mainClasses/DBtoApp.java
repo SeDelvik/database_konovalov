@@ -320,5 +320,23 @@ public class DBtoApp {
         }
         return output;
     }
+    /**
+     *
+     * */
+    public ArrayList<Organisation> findInAllExtraData(String param){
+        ArrayList<Organisation> output = new ArrayList<>();
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
+                    "FROM info,company, type_company,type_info , main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "and info.\"data\" ~ \'.*"+param+".*\'");
+            output = getAllData(resultSet);
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return output;
+    }
 
 }

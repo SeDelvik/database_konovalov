@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 
-/*TODO отдебажить старые данные. по возможности настроить вывод всей информации а не только того что выбрано через базу данных*/
 /*TODO заменить боковые панели на scrolpanel и добавить перенос текста*/
 public class Main extends Application {
     static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/postgres";
