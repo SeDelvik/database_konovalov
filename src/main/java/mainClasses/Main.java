@@ -25,7 +25,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
 
 
-        DBtoApp connector = new DBtoApp();
+        DBtoApp connector = new DBtoApp(DB_URL,USER,PASS);
         //ArrayList<Organisation> list = FXCollections.observableArrayList();
         ArrayList<Organisation> arrayList = connector.getCurrentData();
         ObservableList<Organisation> list =FXCollections.observableArrayList(arrayList);

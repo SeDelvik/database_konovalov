@@ -1,8 +1,9 @@
 package mainClasses;
 
+import comparators.OrganisationComparator;
+
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class DBtoApp {
     static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/postgres";
@@ -11,10 +12,10 @@ public class DBtoApp {
     private Connection connection;
     final private String numberRegex = "(.*телефон.*|.*phone number.*)";
 
-    public DBtoApp(){
+    public DBtoApp(String url, String login,String password){
         try {
             connection = DriverManager
-                    .getConnection(DB_URL, USER, PASS);
+                    .getConnection(url,login,password/*DB_URL, USER, PASS*/);
 
         } catch (SQLException e) {
             System.out.println("Connection Failed");
@@ -26,24 +27,30 @@ public class DBtoApp {
         return this.connection;
     }
 
-
     /**
      * Формирование объектов из всех данных
      * */
     public ArrayList<Organisation> getCurrentData(){
         ArrayList<Organisation> list = new ArrayList<>();
+        Set<Organisation> setlist = new TreeSet(new OrganisationComparator());
 
-        try {
+
+        try {                  /*проход по всем записям*/
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\", main_address.address ,type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
                     "FROM info,company, type_company,type_info , main_address \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id "/*+
                     "and info.active_or_not = true"*/);
-            list = resultSetToOrganisation(resultSet);
+            //list.addAll(resultSetToOrganisation(resultSet));
+            setlist.addAll(resultSetToOrganisation(resultSet));
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        /*поиск всех организаций*/
+
+        setlist.addAll(getAllOrganisationWithoutExtraData());
+
         /*try {
             Statement statement = connection.createStatement();
             ResultSet allEntry = statement.executeQuery("SELECT * FROM info WHERE active_or_not = true"); //выборка всех записей в основной таблице
@@ -103,9 +110,29 @@ public class DBtoApp {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }*/
-        return list;
+        return new ArrayList<>(setlist)/*list*/;
     }
 
+    public ArrayList<Organisation> getAllOrganisationWithoutExtraData(){
+        ArrayList<Organisation> output = new ArrayList<>();
+        try{
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select distinct company.company_id, company.\"name\", type_company.type_name, main_address.address \n" +
+                    "FROM company, type_company,type_info , main_address\n" +
+                    "where type_company.id =company.type_id and main_address.id_address = company.address_id \n");
+            while(resultSet.next()){
+                Organisation org = new Organisation(resultSet.getInt(1));
+                org.getData().put("Name", resultSet.getString(2));
+                org.getData().put("Type",resultSet.getString(3));
+                org.getData().put("Main Address",resultSet.getString(4));
+                output.add(org);
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return output;
+    }
     public ArrayList<String> getAllTypeOrganisation(){
         ArrayList<String> output = new ArrayList<>();
         try {
@@ -238,8 +265,8 @@ public class DBtoApp {
             if (orgTest==null){
                 orgTest = new Organisation(id);
                 orgTest.getData().put("Name", resultSet.getString(2));
-                orgTest.getData().put("Type",resultSet.getString(2));
-                orgTest.getData().put("Main Address",resultSet.getString(3));
+                orgTest.getData().put("Type",resultSet.getString(3));
+                orgTest.getData().put("Main Address",resultSet.getString(4));
                 output.add(orgTest);
             }
             String dataName = resultSet.getString(5);
