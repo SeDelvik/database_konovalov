@@ -332,14 +332,14 @@ public class DBtoApp {
         ArrayList<Organisation> output = new ArrayList<>();
         try {
             while (resultSet.next()) {
-                id = id+resultSet.getInt(1)+"|";
+                id = id+resultSet.getInt(1)+",";
             }
             id = id.substring(0,id.length()-1)+")";
             if(id.length()<2) return output;
-            ResultSet subResultSet = connection.createStatement().executeQuery("SELECT company.company_id, company.\"name\", main_address.address ,type_company.type_name, type_info.column_names, info.\"data\", info.active_or_not \n" +
-                    "FROM info,company, type_company,type_info , main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
-                    "and cast (info.company_id as character(32) ) ~ '"+id+"'");
+            ResultSet subResultSet = connection.createStatement().executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, main_address.address , type_info.column_names, info.\"data\", info.active_or_not\n" +
+                    "FROM info,company, type_company,type_info, main_address\n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n" +
+                    "and info.company_id in"+id);
 
             output = resultSetToOrganisation(subResultSet);
         } catch (SQLException throwables) {
