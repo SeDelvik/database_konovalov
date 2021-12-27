@@ -348,7 +348,7 @@ public class DBtoApp {
         return output;
     }
     /**
-     *
+     * поиск по всей дополнительной информации включая старую
      * */
     public ArrayList<Organisation> findInAllExtraData(String param){
         ArrayList<Organisation> output = new ArrayList<>();

@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/13" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
    <center>
       <ListView fx:id="viewData" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </center>
@@ -81,9 +81,10 @@
         <URL value="@Style.css" />
     </stylesheets>
    <right>
-      <VBox alignment="TOP_CENTER" prefHeight="374.0" prefWidth="149.0" BorderPane.alignment="CENTER">
+      <VBox alignment="TOP_CENTER" prefHeight="374.0" prefWidth="149.0" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Text fx:id="dataTextObserve" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+            <Text fx:id="dataTextObserve" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="170.0" />
+            <Text fx:id="olddataTextObserve" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="170.0" />
          </children>
          <padding>
             <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />

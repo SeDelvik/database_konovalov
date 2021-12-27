@@ -29,8 +29,11 @@ public class MainController implements Initializable {
     private Text dataTextObserve;
     @FXML
     private ListView<Organisation> viewData;
+    @FXML
+    private Text olddataTextObserve;
 
     private StringProperty dataText= new SimpleStringProperty("");
+    private StringProperty olddataText= new SimpleStringProperty("");
     private ObservableList<Organisation> dataListObs;
     private DBtoApp connector;
 
@@ -43,6 +46,16 @@ public class MainController implements Initializable {
         dataText.set("");
         org.getData().forEach((key,value)->{
             dataText.set(dataText.getValue()+key+": "+value+"\n");
+        });
+
+        olddataText.set("");
+        org.getOldData().forEach((key,value)->{
+            olddataText.set(olddataText.getValue()+key+": ");
+            value.forEach((str)->{
+                olddataText.set(olddataText.getValue()+str+", ");
+            });
+            olddataText.set(olddataText.getValue().substring(0,olddataText.getValue().length()-2));
+            olddataText.set(olddataText.getValue()+"\n");
         });
     }
 
@@ -114,7 +127,9 @@ public class MainController implements Initializable {
                 obs = FXCollections.observableArrayList(connector.getOrganisationToNum(params));
             }
 
-            Stage stage = new Stage();
+            viewData.setItems(obs);
+            viewData.getSelectionModel().selectFirst();
+            /*Stage stage = new Stage();
             stage.setTitle("?");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/FindedData.fxml"));
             FindedDataController findedDataController = new FindedDataController(obs);
@@ -122,8 +137,8 @@ public class MainController implements Initializable {
             Parent root = loader.load();
             Scene scene = new Scene(root);
             stage.setScene(scene);
-            stage.showAndWait();
-        } catch (SQLException | IOException throwables) {
+            stage.showAndWait();*/
+        } catch (SQLException /*| IOException*/ throwables) {
             throwables.printStackTrace();
         }
     }
@@ -160,6 +175,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         dataTextObserve.textProperty().bind(this.dataText);
+        olddataTextObserve.textProperty().bind(this.olddataText);
 
         viewData.setItems(dataListObs);
         viewData.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
