@@ -174,6 +174,27 @@ public class DBtoApp {
 
         return output;
     }
+    /**
+     * Получить все возможные типы компаний
+     * */
+    public ArrayList<String> getAllTypeCompany(){
+        ArrayList<String> output = new ArrayList<>();
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select type_name\n" +
+                    "from type_company");
+            while(resultSet.next()){
+                output.add(resultSet.getString(1));
+            }
+
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+
+        return output;
+    }
 
     /**
      * Поиск номера телефона по названию и типу
@@ -254,7 +275,7 @@ public class DBtoApp {
         return output;
     }
     /**
-     * Формирует из записей объекты-организации
+     * Формирует из записей(ResultSet) объекты-организации
      * */
     public ArrayList<Organisation> resultSetToOrganisation(ResultSet resultSet) throws SQLException {
         ArrayList<Organisation> output = new ArrayList<>();
@@ -364,6 +385,21 @@ public class DBtoApp {
             throwables.printStackTrace();
         }
         return output;
+    }
+    public void addNewOrganisationType(String value){
+        try {
+            Statement statement = connection.createStatement();
+            int MAX = 0;
+            ResultSet resultSet = statement.executeQuery("select max(id)\n" +
+                    "from type_company");
+            while (resultSet.next()){
+                MAX = resultSet.getInt(1)+1;
+            }
+            statement.executeUpdate("INSERT INTO type_company VALUES ("+MAX+",'"+value+"')");
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
 }

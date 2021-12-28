@@ -30,7 +30,7 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-                  <MenuItem fx:id="addNewBut" mnemonicParsing="false" text="New" />
+                  <MenuItem mnemonicParsing="false" onAction="#addNewType" text="Добавить новый тип" />
               <MenuItem fx:id="deleteBut" mnemonicParsing="false" text="Delete" />
             </items>
           </Menu>

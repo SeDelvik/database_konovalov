@@ -93,7 +93,6 @@ public class MainController implements Initializable {
             HashMap<String,String> hash = new HashMap<>();
             //ArrayList<String> list = connector.getAllTypeOrganisation();
             ArrayList<String> list = connector.getAllTypeInformationWithoutPhoneNumber();
-
             Stage stage = new Stage();
             stage.setTitle("?");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/AskDataController.fxml"));
@@ -167,6 +166,22 @@ public class MainController implements Initializable {
                 System.out.println(hash);
                 filteredObjects(hash);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void addNewType(){
+        try {
+            ArrayList<String> array = connector.getAllTypeCompany();
+            Stage stage = new Stage();
+            stage.setTitle("Add new type of company");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/AddNewType.fxml"));
+            AddNewTypeController addNewTypeController = new AddNewTypeController(connector,array);
+            loader.setController(addNewTypeController);
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
         }
