@@ -386,6 +386,9 @@ public class DBtoApp {
         }
         return output;
     }
+    /**
+     * Добавление нового типа организации в базу данных
+     * */
     public void addNewOrganisationType(String value){
         try {
             Statement statement = connection.createStatement();
