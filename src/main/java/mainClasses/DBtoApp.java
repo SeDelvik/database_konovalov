@@ -10,7 +10,7 @@ public class DBtoApp {
     static final String USER = "admin";
     static final String PASS = "admin";
     private Connection connection;
-    final private String numberRegex = "(.*телефон.*|.*phone number.*)";
+    final private String numberRegex = "phone number"; //"(.*телефон.*|.*phone number.*)";
 
     public DBtoApp(String url, String login,String password){
         try {
@@ -130,25 +130,52 @@ public class DBtoApp {
         String sqlZapr;
         switch (data.get("type data")){
             case("type"):
+                /*sqlZapr = "select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
+                        "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";*/
                 sqlZapr = "select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
-                        "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
-                resultSet = statement.executeQuery(sqlZapr);
+                        "and type_company.type_name ~ ? and company.\"name\" ~ ?";
+                //resultSet = statement.executeQuery(sqlZapr);
+                PreparedStatement preparedStatement = connection.prepareStatement(sqlZapr);
+                preparedStatement.setString(1,data.get("data"));
+                preparedStatement.setString(2,data.get("name"));
+                resultSet = preparedStatement.executeQuery();
                 break;
             case("main address"): //?
-                sqlZapr = "select distinct company.company_id\n" +
+                /*sqlZapr = "select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
                         "and company.address ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
-                resultSet = statement.executeQuery(sqlZapr);
+                resultSet = statement.executeQuery(sqlZapr);*/
+                sqlZapr = "select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
+                        "and company.address ~ ? and company.\"name\" ~ ?";
+                PreparedStatement preparedStatement1 = connection.prepareStatement(sqlZapr);
+                preparedStatement1.setString(1,data.get("data"));
+                preparedStatement1.setString(2,data.get("name"));
+                resultSet = preparedStatement1.executeQuery();
                 break;
             default:
-                resultSet = statement.executeQuery("select distinct company.company_id\n" +
+                /*resultSet = statement.executeQuery("select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                        "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
-
+                        "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*/
+                sqlZapr = "select distinct company.company_id\n" +
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
+                        "and type_info.column_names ~ ? and info.\"data\" ~ ? and company.\"name\" ~ ?";
+                String put = data.get("type data")+"|"+numberRegex;
+                PreparedStatement preparedStatement2 = connection.prepareStatement(sqlZapr);
+                //preparedStatement2.setString(1,data.get("type data"));
+                //preparedStatement2.setString(2,numberRegex);
+                preparedStatement2.setString(1,put);
+                preparedStatement2.setString(2,data.get("data"));
+                preparedStatement2.setString(3,data.get("name"));
+                resultSet = preparedStatement2.executeQuery();
                 break;
         }
         output = getAllData(resultSet);
@@ -234,11 +261,21 @@ public class DBtoApp {
     public ArrayList<Organisation> findInAllExtraData(String param){
         ArrayList<Organisation> output = new ArrayList<>();
         try {
-            Statement statement = connection.createStatement();
+            /*Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                    "and info.\"data\" ~ \'.*"+param+".*\'");
+                    "and info.\"data\" ~ \'.*"+param+".*\'");*/
+            String sql = "select distinct company.company_id\n" +
+                    "FROM info,company, type_company,type_info \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
+                    "and info.\"data\" ~ ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1,param);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+
+
             output = getAllData(resultSet);
 
         } catch (SQLException throwables) {
@@ -264,6 +301,8 @@ public class DBtoApp {
             throwables.printStackTrace();
         }
     }
+    /**
+     * Получить список названий всех типов информации*/
     public ArrayList<String> getAllInfoType(){
         ArrayList<String> array = new ArrayList<>();
         try{
@@ -279,6 +318,8 @@ public class DBtoApp {
         }
         return array;
     }
+    /**
+     * Добавление нового типа информации*/
     public void addNewInfoType(String value){
         try{
             Statement statement = connection.createStatement();
@@ -293,6 +334,8 @@ public class DBtoApp {
             throwables.printStackTrace();
         }
     }
+    /**
+     * Получить максимальный свободный на данный момент id в таблице company (содержит все организации с обязательными параметрами)*/
     public int getMaxOrganisationId(){
         int MAX = 0;
         try{
@@ -309,6 +352,8 @@ public class DBtoApp {
         }
         return MAX;
     }
+    /**
+     * Получить id типа организации по его названию*/
     public int getTypeOrganisationId(String typeName){
         int id = 0;
         try{
@@ -325,6 +370,8 @@ public class DBtoApp {
         return id;
 
     }
+    /**
+     * Получить id типа информации по его названию*/
     public int getInfoTypeId(String typeName){
         int id = 0;
         try{
@@ -341,6 +388,8 @@ public class DBtoApp {
         }
         return id;
     }
+    /**
+     * Получить максимальный свободный на данный момент id в таблице info (содержит все записи с телефонами и доп информацией)*/
     public int getMaxInfoId(){
         int id = 0;
         try{
