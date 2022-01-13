@@ -1,5 +1,6 @@
 package controllers;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,10 +19,10 @@ public class AddNewTypeController {
     private Button CloseBut;
     @FXML
     private Label errorMessage;
-    private ArrayList<String> array;
+    private ObservableList<String> array;
     private DBtoApp connector;
 
-    public  AddNewTypeController(DBtoApp connector,ArrayList<String> array){
+    public  AddNewTypeController(DBtoApp connector,ObservableList<String> array){
         this.array = array;
         this.connector = connector;
     }
@@ -43,6 +44,7 @@ public class AddNewTypeController {
             }
             if(flag<1){
                 connector.addNewOrganisationType(text);
+                array.add(text);
                 close();
             }
             else errorMessage.opacityProperty().setValue(1);

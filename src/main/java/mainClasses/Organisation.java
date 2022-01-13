@@ -2,7 +2,6 @@ package mainClasses;
 
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,13 +27,6 @@ public class Organisation {
         return this.id.get();
     }
 
-    /*public void putData(String key,String volume){
-        data.put(new SimpleStringProperty(key),new SimpleStringProperty(volume));
-    }*/
-
-    /*public String getVolume(String key){
-        return data.get(new SimpleStringProperty(key)).get();
-    }*/
     public MapProperty<String,String> dataMapProperty() {
         if (data == null) {
             data = new SimpleMapProperty<>(FXCollections
@@ -62,35 +54,32 @@ public class Organisation {
     public MapProperty<String,ArrayList<String>> getOldData(){
         return oldData;
     }
+    public void changeData(HashMap<String,String> newValues){
+        /*проверка удаленных*/
+        ArrayList<String> keySet = new ArrayList<>(data.keySet());
+        for(String key : keySet){
+            if(!newValues.containsKey(key)){ //если значение было удалено то перемещение значения в старые данные и удаление ключа в массиве с данными
+                if(!oldData.containsKey(key)) oldData.put(key, new ArrayList<>());
+                oldData.get(key).add(data.remove(key));
+            }else if(!newValues.get(key).equals(data.get(key))){
+                if(!key.equals("Name")&&!key.equals("Type")&&!key.equals("Main Address")) {
+                    if (!oldData.containsKey(key)) oldData.put(key, new ArrayList<>());
+                    oldData.get(key).add(data.get(key));
+                }
+                data.put(key,newValues.get(key));
+            }
+        }
+        for(String key : newValues.keySet()){
+            if(!data.containsKey(key)){
+                data.put(key,newValues.get(key));
+            }
+        }
+    }
 
     @Override
     public String toString(){
-        return Integer.toString(id.get())+" "+data.get("Name");
+        return id.get() +" "+data.get("Name");
     }
-/*    public ObservableMap<String,String> MapProperty() {
-        if (data == null) {
-            data = new SimpleMapProperty<>();
-        }
-        return data;
-    }
-
-    public void setDataset(ObservableMap<String,String> hash){
-        //MapProperty().set(hash);
-        this.data=hash;
-    }
-
-    public ObservableMap<String,String> getData(){
-        return this.data;
-    }
-
-    public Organisation (Integer id, ObservableMap<String,String> data){
-        setDataset(data);
-        setId(id);
-        this.getData().put("Name","");
-        this.getData().put("Type","");
-        this.getData().put("Phone Number1","");
-        this.getData().put("Address","");
-    }*/
 
     @Override
     public boolean equals(Object o) {

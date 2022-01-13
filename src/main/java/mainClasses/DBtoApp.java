@@ -37,11 +37,9 @@ public class DBtoApp {
 
         try {                  /*проход по всем записям*/
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\", main_address.address ,type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
-                    "FROM info,company, type_company,type_info , main_address \n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id "/*+
-                    "and info.active_or_not = true"*/);
-            //list.addAll(resultSetToOrganisation(resultSet));
+            ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\" ,type_company.type_name, company.address, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
+                    "FROM info,company, type_company,type_info \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  ");
             setlist.addAll(resultSetToOrganisation(resultSet));
 
         } catch (SQLException throwables) {
@@ -50,76 +48,19 @@ public class DBtoApp {
         /*поиск всех организаций*/
 
         setlist.addAll(getAllOrganisationWithoutExtraData());
-
-        /*try {
-            Statement statement = connection.createStatement();
-            ResultSet allEntry = statement.executeQuery("SELECT * FROM info WHERE active_or_not = true"); //выборка всех записей в основной таблице
-            while(allEntry.next()){ //чтение основной таблицы со всеми данными
-                int curId=0;
-                    try {
-                        curId = allEntry.getInt("company_id");
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-                int finalCurId = curId;
-                if (list.stream().filter(organisation -> (organisation.getId()== finalCurId)).count() < 1){ //есть ли такая организация в списке
-                    try {
-                        Statement statName = connection.createStatement();
-                        Statement statType = connection.createStatement();
-                        ObservableMap<String, String> hash = new SimpleMapProperty<>();
-
-                        int COMID=allEntry.getInt("company_id");
-                        ResultSet comName = statName.executeQuery("SELECT * FROM company WHERE company_id = "+ COMID); //поиск имени в таблице с именами организаций
-                        comName.next();
-                        ResultSet comType = statType.executeQuery("SELECT * FROM type_company WHERE id = "+comName.getInt("type_id")); //поиск типа в таблице с типами организаций
-                        comType.next();
-                        String companyName=comName.getString("name"); //получение имени как строки
-                        String companyType=comType.getString("type_name");  //получение типа как строки
-
-                        Organisation org = new Organisation(finalCurId);
-                        //org.getData().
-                        org.getData().put("Type",companyType);
-                        org.getData().put("Name",companyName);
-                        //hash.put("Type",companyType);
-                        //hash.put("Name",companyName);
-                        list.add(org*//*new Organisation(finalCurId, hash)*//*);
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-                }
-
-                try {
-                    Statement statInfo = connection.createStatement();
-                    int curIdInfo = allEntry.getInt("type_info_id");
-                    ResultSet infoType = statInfo.executeQuery("SELECT * from type_info WHERE id = "+curIdInfo);
-                    infoType.next();
-                    String nameInfo = infoType.getString("column_names");
-                    String info = allEntry.getString("data");
-                    list.stream().filter(organisation -> (organisation.getId()== finalCurId)).forEach(organisation -> {
-                        organisation.getData().put(nameInfo,info);
-                        //organisation.putData(nameInfo,info);
-                    });
-
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-
-
-            }
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }*/
         return new ArrayList<>(setlist)/*list*/;
     }
-
+    /**
+     * Формирование объектов без дополнительных данных т.е. без данных из таблица info
+     * */
     public ArrayList<Organisation> getAllOrganisationWithoutExtraData(){
         ArrayList<Organisation> output = new ArrayList<>();
         try{
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select distinct company.company_id, company.\"name\", type_company.type_name, main_address.address \n" +
-                    "FROM company, type_company,type_info , main_address\n" +
-                    "where type_company.id =company.type_id and main_address.id_address = company.address_id \n");
+            ResultSet resultSet = statement.executeQuery("select distinct company.company_id, company.\"name\","+
+                    " type_company.type_name, company.address \n" +
+                    "FROM company, type_company,type_info \n" +
+                    "where type_company.id =company.type_id \n");
             while(resultSet.next()){
                 Organisation org = new Organisation(resultSet.getInt(1));
                 org.getData().put("Name", resultSet.getString(2));
@@ -133,23 +74,6 @@ public class DBtoApp {
         }
         return output;
     }
-    public ArrayList<String> getAllTypeOrganisation(){
-        ArrayList<String> output = new ArrayList<>();
-        try {
-            Statement statement = connection.createStatement();
-            ResultSet allEntry = statement.executeQuery("SELECT * FROM type_company "); //выборка всех записей в основной таблице
-            while(allEntry.next()){
-                output.add(allEntry.getString("type_name"));
-            }
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-
-        return output;
-    }
-
     /**
      * Получить все возможные виды дополнительной информации + основной тип
      * */
@@ -201,77 +125,33 @@ public class DBtoApp {
      * */
     public ArrayList<Organisation> getFilteredNumber(HashMap<String,String> data) throws SQLException {
         ArrayList<Organisation> output = new ArrayList<>();
-
-        /*if(data.get("all").equals("false")){
-
-        }*/
-
         Statement statement = connection.createStatement();
         ResultSet resultSet;
         String sqlZapr;
         switch (data.get("type data")){
             case("type"):
                 sqlZapr = "select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info , main_address\n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
                         "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
                 resultSet = statement.executeQuery(sqlZapr);
                 break;
-            case("main address"):
+            case("main address"): //?
                 sqlZapr = "select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info , main_address\n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
-                        "and main_address.address ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
+                        "and company.address ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
                 resultSet = statement.executeQuery(sqlZapr);
                 break;
             default:
                 resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info , main_address\n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                        "FROM info,company, type_company,type_info \n" +
+                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
                         "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
 
                 break;
         }
-        /*if (data.get("type data").equals("type")){ //тип организации или другое
-            *//*resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
-                    "FROM info,company, type_company,type_info \n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
-                    "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*//*
-            String sqlZapr = "select distinct company.company_id\n" +
-                    "FROM info,company, type_company,type_info , main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
-                    "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
-            resultSet = statement.executeQuery(sqlZapr);
-        }
-        else{
-            *//*resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
-                    "FROM info,company, type_company,type_info \n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
-                    "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*//*
-            resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                    "FROM info,company, type_company,type_info , main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
-                    "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");
-        }*/
-
-        //output = resultSetToOrganisation(resultSet);
         output = getAllData(resultSet);
-
-        /*String type = "";
-        if (data.get("type").equals("All")){
-            type = ".*";
-        }
-        else{
-            type = data.get("type");
-        }
-        String phoneType = "\'(.*телефон.*|.*phone number.*)\'";
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\"  " +
-                "FROM info,company, type_company,type_info " +
-                "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id " +
-                "and type_company.type_name ~ \'"+type+"\' and type_info.column_names ~ "+phoneType+" and info.data ~ \'.*"+data.get("number")+".*\'");
-
-        output = resultSetToOrganisation(resultSet);*/
         return output;
     }
     /**
@@ -304,18 +184,6 @@ public class DBtoApp {
                 });
             }
 
-            /*if (output.contains(new Organisation(resultSet.getInt(1)))){
-                org = output.get(output.indexOf(new Organisation(resultSet.getInt(1))));
-            }
-            else{
-                org = new Organisation(resultSet.getInt(1));
-                org.getData().put("Name", resultSet.getString(2));
-                org.getData().put("Type",resultSet.getString(3));
-                output.add(org);
-
-            }
-            org.getData().put(resultSet.getString(4),resultSet.getString(5));*/
-
         }
         return output;
     }
@@ -324,25 +192,17 @@ public class DBtoApp {
      * */
     public ArrayList<Organisation> getOrganisationToNum(HashMap<String, String> params) {
         ArrayList<Organisation> output = new ArrayList<>();
-        //ResultSet resultSet;
         try{
             Statement statement = connection.createStatement();
-        /*    ResultSet resultSet = statement.executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, type_info.column_names, info.\"data\" , info.active_or_not  \n" +
-                    "FROM info,company, type_company,type_info \n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
-                    "\tand type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'");
-            output = resultSetToOrganisation(resultSet);*/
             ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                    "FROM info,company, type_company,type_info , main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "FROM info,company, type_company,type_info \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
                     "and type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'");
             output = getAllData(resultSet);
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
-        //output = resultSetToOrganisation(redultSet);
         return output;
     }
     /**
@@ -357,9 +217,9 @@ public class DBtoApp {
             }
             id = id.substring(0,id.length()-1)+")";
             if(id.length()<2) return output;
-            ResultSet subResultSet = connection.createStatement().executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, main_address.address , type_info.column_names, info.\"data\", info.active_or_not\n" +
+            ResultSet subResultSet = connection.createStatement().executeQuery("SELECT company.company_id, company.\"name\",type_company.type_name, company.address , type_info.column_names, info.\"data\", info.active_or_not\n" +
                     "FROM info,company, type_company,type_info, main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n" +
                     "and info.company_id in"+id);
 
             output = resultSetToOrganisation(subResultSet);
@@ -376,8 +236,8 @@ public class DBtoApp {
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                    "FROM info,company, type_company,type_info , main_address\n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id and main_address.id_address = company.address_id \n"+
+                    "FROM info,company, type_company,type_info \n" +
+                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
                     "and info.\"data\" ~ \'.*"+param+".*\'");
             output = getAllData(resultSet);
 
@@ -400,6 +260,213 @@ public class DBtoApp {
             }
             statement.executeUpdate("INSERT INTO type_company VALUES ("+MAX+",'"+value+"')");
 
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+    public ArrayList<String> getAllInfoType(){
+        ArrayList<String> array = new ArrayList<>();
+        try{
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select type_info.column_names \n" +
+                    "FROM type_info ");
+            while(resultSet.next()){
+                array.add(resultSet.getString(1));
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return array;
+    }
+    public void addNewInfoType(String value){
+        try{
+            Statement statement = connection.createStatement();
+            int MAX = 0;
+            ResultSet resultSet = statement.executeQuery("select max(id)\n" +
+                    "from type_info");
+            while (resultSet.next()){
+                MAX = resultSet.getInt(1)+1;
+            }
+            statement.executeUpdate("INSERT INTO type_info VALUES ("+MAX+",'"+value+"')");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+    public int getMaxOrganisationId(){
+        int MAX = 0;
+        try{
+            Statement statement = connection.createStatement();
+
+            ResultSet resultSet = statement.executeQuery("select max(company_id)\n" +
+                    "from company");
+            while (resultSet.next()){
+                MAX = resultSet.getInt(1)+1;
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return MAX;
+    }
+    public int getTypeOrganisationId(String typeName){
+        int id = 0;
+        try{
+            Statement statement = connection.createStatement();
+            String update = String.format("select id from type_company\n" +
+                    "where type_name ~ '%s'",typeName);
+            ResultSet resultSet = statement.executeQuery(update);
+            while(resultSet.next()){
+                id = resultSet.getInt(1);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return id;
+
+    }
+    public int getInfoTypeId(String typeName){
+        int id = 0;
+        try{
+            Statement statement = connection.createStatement();
+            String update = String.format("select id from type_info\n" +
+                    "where column_names ~ '%s'",typeName);
+            ResultSet resultSet = statement.executeQuery(update);
+            while(resultSet.next()){
+                id = resultSet.getInt(1);
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return id;
+    }
+    public int getMaxInfoId(){
+        int id = 0;
+        try{
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select max(info_id)\n" +
+                    "from info");
+            while (resultSet.next()){
+                id = resultSet.getInt(1)+1;
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+
+        return id;
+    }
+
+    /**
+    * Добавляет новую организацию в соответствующие таблицы базы данных*/
+    public void addNewOrganisation(Organisation organisation){ //todo переписать на prepareStatement так как может быть ошибка в выполнении запроса
+        try{
+            int typeId = getTypeOrganisationId(organisation.getData().get("Type"));
+            Statement statement = connection.createStatement();
+            String update = String.format("insert into company values\n" +
+                    "(%d,'%s',%d,'%s')",
+                    organisation.getId(),organisation.getData().get("Name"),typeId,organisation.getData().get("Main Address"));
+            statement.executeUpdate(update);
+
+            statement = connection.createStatement();
+            int infoId = getMaxInfoId();
+            for(String key : organisation.getData().keySet()){
+                if(!key.equals("Name")&&
+                        !key.equals("Type")&&
+                        !key.equals("Main Address")){
+                    update = String.format("insert into info values " +
+                            "(%d,%d,%d,%s,true)",
+                            infoId,organisation.getId(),getInfoTypeId(key),organisation.getData().get(key));
+                    statement.executeUpdate(update);
+                    infoId++;
+                }
+            }
+
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+    public void editOrganisationData(Organisation organisation,HashMap<String,String> newValues){
+        /*удаленные*/
+        try{
+            /*таблица company*/
+            Statement statementGet = connection.createStatement();
+            ResultSet resultSetCompany = statementGet.executeQuery(String.format("select company.\"name\",type_company.type_name,company.address " +
+                    "from company, type_company where company.type_id =type_company.id and company_id = %d",organisation.getId()));
+            while(resultSetCompany.next()){
+                if(!organisation.getData().get("Name").equals(resultSetCompany.getString(1))){
+                    String sql = "update company set name = ? where company_id = ?";
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                    preparedStatement.setString(1, organisation.getData().get("Name"));
+                    preparedStatement.setInt(2,organisation.getId());
+                    preparedStatement.executeUpdate();
+                }
+                if(!organisation.getData().get("Type").equals(resultSetCompany.getString(2))){
+                    String sql = "update company set type_id = ? where company_id = ?";
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                    preparedStatement.setInt(1, getTypeOrganisationId(organisation.getData().get("Type")) );
+                    preparedStatement.setInt(2,organisation.getId());
+                    preparedStatement.executeUpdate();
+                }
+                if(!organisation.getData().get("Main Address").equals(resultSetCompany.getString(3))){
+                    String sql = "update company set address = ? where company_id = ?";
+                    PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                    preparedStatement.setString(1, organisation.getData().get("Main Address"));
+                    preparedStatement.setInt(2,organisation.getId());
+                    preparedStatement.executeUpdate();
+                }
+
+
+            }
+            /*таблица info*/
+            ArrayList<String> keySet = new ArrayList<>(organisation.getData().keySet());
+            Statement statement = connection.createStatement();
+            String sql = String.format("select info.info_id ,info.type_info_id ,type_info.column_names,info.\"data\",info.active_or_not " +
+                    "from info,type_info where type_info.id = info.type_info_id and company_id = %d",organisation.getId());
+            ResultSet resultSetInfo = statement.executeQuery(sql);
+            while (resultSetInfo.next()){
+                if(resultSetInfo.getBoolean(5)){
+                    if(!organisation.getData().containsKey(resultSetInfo.getString(3))){ //если информацию удалили
+                        String sqlUpdate = String.format("update info set active_or_not = false where info.info_id = %d",resultSetInfo.getInt(2));
+                        connection.createStatement().executeUpdate(sqlUpdate);
+                    }
+                    //добавить новое значение если такого же типа уже существовало ранее
+                   else if(organisation.getData().get(resultSetInfo.getString(3)).equals(resultSetInfo.getString(4))){
+                        String sqlUpdate = String.format("update info set active_or_not = false where info.info_id = %d",resultSetInfo.getInt(1));
+                        connection.createStatement().executeUpdate(sqlUpdate);
+                        sqlUpdate = "insert into info values(?,?,?,?,true)";
+                        PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate);
+                        preparedStatement.setInt(1,getMaxInfoId());
+                        preparedStatement.setInt(2,organisation.getId());
+                        preparedStatement.setInt(3,resultSetInfo.getInt(2));
+                        preparedStatement.setString(4,organisation.getData().get(resultSetInfo.getString(3)));
+                        keySet.remove(resultSetInfo.getString(3));
+                    }
+                }
+            }
+            for(String key : keySet){ //добавить в бд то что появилось нового
+                String sqlUpdate = "insert into info values(?,?,?,?,true)";
+                PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate);
+                preparedStatement.setInt(1,getMaxInfoId());
+                preparedStatement.setInt(2,organisation.getId());
+                preparedStatement.setInt(3,getInfoTypeId(key));
+                preparedStatement.setString(4,organisation.getData().get(key));
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        /*изменяемые*/
+    }
+    public void deleteOrganisation(Organisation organisation){
+        try{
+            String sql = String.format("delete from info where company_id = %d",organisation.getId());
+            connection.createStatement().executeUpdate(sql);
+            sql = String.format("delete from company where company_id = %d",organisation.getId());
+            connection.createStatement().executeUpdate(sql);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
