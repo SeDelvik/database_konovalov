@@ -3,6 +3,7 @@ package controllers;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -22,6 +23,8 @@ public class AskNumberController implements Initializable {
     private Button applyButton;
     @FXML
     private Label errorMessage;
+    @FXML
+    private CheckBox checkBox;
     private HashMap<String,String> params;
 
 
@@ -38,6 +41,14 @@ public class AskNumberController implements Initializable {
     public void applyFindNum() {
         if (Pattern.matches("^\\d+$", numText.getText()) ){
             params.put("number", numText.getText());
+
+            if(checkBox.isIndeterminate()){
+                params.put("check","indeterminate");
+            }else if(checkBox.isSelected()){
+                params.put("check","selected");
+            }else{
+                params.put("check","unselected");
+            }
             Stage stage = (Stage) applyButton.getScene().getWindow();
             stage.close();
 

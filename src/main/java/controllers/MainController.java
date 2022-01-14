@@ -2,6 +2,8 @@ package controllers;
 
 
 import javafx.application.Platform;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -24,24 +26,28 @@ import mainClasses.Organisation;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MainController implements Initializable {
-    @FXML
+    /*@FXML
     private Text dataTextObserve;
     @FXML
-    private ListView<Organisation> viewData;
+    private Text olddataTextObserve;*/
     @FXML
-    private Text olddataTextObserve;
+    private ListView<Organisation> viewData;
+
     @FXML
     private TableColumn<Map.Entry<String,String>,String> col1;
     @FXML
     private TableColumn<Map.Entry<String,String>,String> col2;
     @FXML
-    private TableView<Map.Entry<String,String>> table;
+    private TableView<Map.Entry<String,String>> tableCur;
+    @FXML
+    private TableColumn<Map.Entry<String,String>,String> col3;
+    @FXML
+    private TableColumn<Map.Entry<String,String>,String> col4;
+    @FXML
+    private TableView<Map.Entry<String, String>> tableOld;
 
     private StringProperty dataText= new SimpleStringProperty("");
     private StringProperty olddataText= new SimpleStringProperty("");
@@ -53,7 +59,7 @@ public class MainController implements Initializable {
         this.connector = connector;
     }
 
-    public void hashToNormalText(Organisation org){
+    /*public void hashToNormalText(Organisation org){
         dataText.set("");
         org.getData().forEach((key,value)->{
             dataText.set(dataText.getValue()+key+": "+value+"\n");
@@ -68,7 +74,7 @@ public class MainController implements Initializable {
             olddataText.set(olddataText.getValue().substring(0,olddataText.getValue().length()-2));
             olddataText.set(olddataText.getValue()+"\n");
         });
-    }
+    }*/
 
     public void exitAct(){
         Platform.exit();
@@ -98,7 +104,7 @@ public class MainController implements Initializable {
             e.printStackTrace();
         }
     }
-    //TODO не работает поиск по главному адресу (кажется рабоатает, всё хорошо)
+    //TODO не работает поиск по главному адресу (кажется работает, всё хорошо)
     public void findNumber(){
         try {
             HashMap<String,String> hash = new HashMap<>();
@@ -182,22 +188,7 @@ public class MainController implements Initializable {
             e.printStackTrace();
         }
     }
-    /*public void addNewType(){
-        try {
-            ArrayList<String> array = connector.getAllTypeCompany();
-            Stage stage = new Stage();
-            stage.setTitle("Add new type of company");
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/AddNewType.fxml"));
-            AddNewTypeController addNewTypeController = new AddNewTypeController(connector,array);
-            loader.setController(addNewTypeController);
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
+
     public void addNewOrganisation(){
         Organisation newOrg = new Organisation(connector.getMaxOrganisationId());
         newOrg.getData().put("Name","");
@@ -213,14 +204,14 @@ public class MainController implements Initializable {
         viewData.getItems().add(newOrg);
     }
     public void editOrganisation(){
-        HashMap<String,String> newDataHash = changeDataSet(viewData.getSelectionModel().getSelectedItem());
-        if(newDataHash.size()>0){
-            viewData.getSelectionModel().getSelectedItem().changeData(newDataHash);
-            connector.editOrganisationData(viewData.getSelectionModel().getSelectedItem(),newDataHash);
+        if(!viewData.getSelectionModel().isEmpty()) {
+            HashMap<String, String> newDataHash = changeDataSet(viewData.getSelectionModel().getSelectedItem());
+            System.out.println(newDataHash);
+            if (newDataHash.size() > 0) {
+                viewData.getSelectionModel().getSelectedItem().changeData(newDataHash);
+                connector.editOrganisationData(viewData.getSelectionModel().getSelectedItem(), newDataHash);
+            }
         }
-
-
-        //здесь должны быть сравнения со старыми значениями и изменения в базе данных и в программе
     }
 
     public HashMap<String,String> changeDataSet(Organisation organisation){
@@ -270,39 +261,69 @@ public class MainController implements Initializable {
     }
 
     public void deleteOrg(){
-        try {
-            Stage stage = new Stage();
-            stage.setTitle("Are you sure?");
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/DeleteQuestion.fxml"));
-            DeleteQuestionController deleteQuestionController = new DeleteQuestionController();
-            loader.setController(deleteQuestionController);
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.showAndWait();
-            if(deleteQuestionController.getConsent()) {
-                Organisation org = viewData.getSelectionModel().getSelectedItem();
-                connector.deleteOrganisation(org);
-                viewData.getItems().remove(org);
+        if(!viewData.getSelectionModel().isEmpty()) {
+            try {
+                Stage stage = new Stage();
+                stage.setTitle("Are you sure?");
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/DeleteQuestion.fxml"));
+                DeleteQuestionController deleteQuestionController = new DeleteQuestionController();
+                loader.setController(deleteQuestionController);
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
+                stage.showAndWait();
+                if (deleteQuestionController.getConsent()) {
+                    Organisation org = viewData.getSelectionModel().getSelectedItem();
+                    connector.deleteOrganisation(org);
+                    viewData.getItems().remove(org);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-
+    public void watchData(){
+        if(!viewData.getSelectionModel().isEmpty()) {
+            try {
+                Stage stage = new Stage();
+                stage.setTitle("watch data");
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/controllers/watchData.fxml"));
+                WatchDataController watchDataController = new WatchDataController(viewData.getSelectionModel().getSelectedItem());
+                loader.setController(watchDataController);
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
+                stage.showAndWait();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        dataTextObserve.textProperty().bind(this.dataText);
-        olddataTextObserve.textProperty().bind(this.olddataText);
+       /* dataTextObserve.textProperty().bind(this.dataText);
+        olddataTextObserve.textProperty().bind(this.olddataText);*/
 
         viewData.setItems(dataListObs);
         viewData.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->{
             if(newValue!=null) {
-                hashToNormalText(newValue);
-                ObservableList<Map.Entry<String, String>> items = FXCollections.observableArrayList(viewData.getSelectionModel().getSelectedItem().getData().entrySet());
-                table.setItems(items);
+                //hashToNormalText(newValue);
+                ObservableList<Map.Entry<String, String>> itemsCur = FXCollections.observableArrayList(viewData.getSelectionModel().getSelectedItem().getData().entrySet());
+                tableCur.setItems(itemsCur);
+                //Map.Entry<String,String> entrySet = new HashSet<>();
+                MapProperty<String,String> tmpMap = new SimpleMapProperty<>(FXCollections.observableMap(new HashMap<String, String>()));
+                for(String key: viewData.getSelectionModel().getSelectedItem().getOldData().keySet()){
+                    String string = "";
+                    for (String str:viewData.getSelectionModel().getSelectedItem().getOldData().get(key)){
+                        string = string+str+", ";
+                    }
+                    string = string.substring(0,string.length()-2);
+                    tmpMap.put(key,string);
+                }
+                ObservableList<Map.Entry<String, String>> itemsOld = FXCollections.observableArrayList(tmpMap.entrySet());
+                tableOld.setItems(itemsOld);
             }
 
 
@@ -326,7 +347,37 @@ public class MainController implements Initializable {
                 return new SimpleStringProperty(p.getValue().getValue());
             }
         });
+        col3.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<String, String>, String>, ObservableValue<String>>() {
+
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<String, String>, String> p) {
+                // this callback returns property for just one cell, you can't use a loop here
+                // for first column we use key
+                return new SimpleStringProperty(p.getValue().getKey());
+            }
+        });
+        col4.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<String, String>, String>, ObservableValue<String>>() {
+
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<String, String>, String> p) {
+                // for second column we use value
+                return new SimpleStringProperty(p.getValue().getValue());
+            }
+        });
         ObservableList<Map.Entry<String, String>> items = FXCollections.observableArrayList(viewData.getSelectionModel().getSelectedItem().getData().entrySet());
-        table.setItems(items);// = new TableView<>(items);
+        tableCur.setItems(items);// = new TableView<>(items);
+
+        MapProperty<String,String> tmpMap = new SimpleMapProperty<>(FXCollections.observableMap(new HashMap<String, String>()));
+        for(String key: viewData.getSelectionModel().getSelectedItem().getOldData().keySet()){
+            String string = "";
+            for (String str:viewData.getSelectionModel().getSelectedItem().getOldData().get(key)){
+                string = string+str+", ";
+            }
+            string = string.substring(0,string.length()-2);
+            tmpMap.put(key,string);
+        }
+        ObservableList<Map.Entry<String, String>> itemsOld = FXCollections.observableArrayList(tmpMap.entrySet());
+        tableOld.setItems(itemsOld);
+
     }
 }

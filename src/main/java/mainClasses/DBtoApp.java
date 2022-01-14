@@ -75,7 +75,7 @@ public class DBtoApp {
         return output;
     }
     /**
-     * Получить все возможные виды дополнительной информации + основной тип
+     * Получить все возможные виды дополнительной информации + тип организации + главный адрес
      * */
     public ArrayList<String> getAllTypeInformationWithoutPhoneNumber(){
         ArrayList<String> output = new ArrayList<>();
@@ -130,26 +130,16 @@ public class DBtoApp {
         String sqlZapr;
         switch (data.get("type data")){
             case("type"):
-                /*sqlZapr = "select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info \n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
-                        "and type_company.type_name ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";*/
                 sqlZapr = "select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
                         "and type_company.type_name ~ ? and company.\"name\" ~ ?";
-                //resultSet = statement.executeQuery(sqlZapr);
                 PreparedStatement preparedStatement = connection.prepareStatement(sqlZapr);
                 preparedStatement.setString(1,data.get("data"));
                 preparedStatement.setString(2,data.get("name"));
                 resultSet = preparedStatement.executeQuery();
                 break;
             case("main address"): //?
-                /*sqlZapr = "select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info \n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
-                        "and company.address ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'";
-                resultSet = statement.executeQuery(sqlZapr);*/
                 sqlZapr = "select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id  \n"+
@@ -160,18 +150,12 @@ public class DBtoApp {
                 resultSet = preparedStatement1.executeQuery();
                 break;
             default:
-                /*resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                        "FROM info,company, type_company,type_info \n" +
-                        "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                        "and type_info.column_names ~ \'.*"+data.get("type data")+".*|"+ numberRegex +"\' and info.\"data\" ~ \'.*"+data.get("data")+".*\' and company.\"name\" ~ \'.*"+data.get("name")+".*\'");*/
                 sqlZapr = "select distinct company.company_id\n" +
                         "FROM info,company, type_company,type_info \n" +
                         "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
                         "and type_info.column_names ~ ? and info.\"data\" ~ ? and company.\"name\" ~ ?";
                 String put = data.get("type data")+"|"+numberRegex;
                 PreparedStatement preparedStatement2 = connection.prepareStatement(sqlZapr);
-                //preparedStatement2.setString(1,data.get("type data"));
-                //preparedStatement2.setString(2,numberRegex);
                 preparedStatement2.setString(1,put);
                 preparedStatement2.setString(2,data.get("data"));
                 preparedStatement2.setString(3,data.get("name"));
@@ -219,12 +203,26 @@ public class DBtoApp {
      * */
     public ArrayList<Organisation> getOrganisationToNum(HashMap<String, String> params) {
         ArrayList<Organisation> output = new ArrayList<>();
+        String checkSelection = "";
+        switch(params.get("check")){
+            case ("selected"):
+                checkSelection = " and active_or_not = true";
+                break;
+            case("unselected"):
+                checkSelection = " and active_or_not = false";
+                break;
+            default:
+                break;
+
+        }
         try{
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
+            String sql = "select distinct company.company_id\n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                    "and type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'");
+                    "and type_info.column_names ~ \'"+numberRegex+"\' and info.\"data\" ~ \'.*"+params.get("number")+".*\'"+checkSelection;
+            ResultSet resultSet = statement.executeQuery(sql);
+
             output = getAllData(resultSet);
 
         } catch (SQLException throwables) {
@@ -256,26 +254,19 @@ public class DBtoApp {
         return output;
     }
     /**
-     * поиск по всей дополнительной информации включая старую
+     * поиск по всей дополнительной информации включая старую (не включает поиск по телефонным номерам)
      * */
     public ArrayList<Organisation> findInAllExtraData(String param){
         ArrayList<Organisation> output = new ArrayList<>();
         try {
-            /*Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select distinct company.company_id\n" +
-                    "FROM info,company, type_company,type_info \n" +
-                    "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                    "and info.\"data\" ~ \'.*"+param+".*\'");*/
             String sql = "select distinct company.company_id\n" +
                     "FROM info,company, type_company,type_info \n" +
                     "where  type_company.id = company.type_id and company.company_id = info.company_id and info.type_info_id = type_info.id \n"+
-                    "and info.\"data\" ~ ?";
+                    "and type_info.column_names !~ ? and info.\"data\" ~ ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1,param);
+            preparedStatement.setString(1,numberRegex);
+            preparedStatement.setString(2,param);
             ResultSet resultSet = preparedStatement.executeQuery();
-
-
-
             output = getAllData(resultSet);
 
         } catch (SQLException throwables) {
@@ -410,25 +401,34 @@ public class DBtoApp {
 
     /**
     * Добавляет новую организацию в соответствующие таблицы базы данных*/
-    public void addNewOrganisation(Organisation organisation){ //todo переписать на prepareStatement так как может быть ошибка в выполнении запроса
+    public void addNewOrganisation(Organisation organisation){
         try{
             int typeId = getTypeOrganisationId(organisation.getData().get("Type"));
-            Statement statement = connection.createStatement();
-            String update = String.format("insert into company values\n" +
-                    "(%d,'%s',%d,'%s')",
-                    organisation.getId(),organisation.getData().get("Name"),typeId,organisation.getData().get("Main Address"));
-            statement.executeUpdate(update);
+            String update = "insert into company values (?,?,?,?)";
+            PreparedStatement preparedStatementCompany = connection.prepareStatement(update);
+            preparedStatementCompany.setInt(1,organisation.getId());
+            preparedStatementCompany.setString(2,organisation.getData().get("Name"));
+            preparedStatementCompany.setInt(3,typeId);
+            preparedStatementCompany.setString(4,organisation.getData().get("Main Address"));
+            preparedStatementCompany.executeUpdate();
 
-            statement = connection.createStatement();
+            //statement = connection.createStatement();
             int infoId = getMaxInfoId();
             for(String key : organisation.getData().keySet()){
                 if(!key.equals("Name")&&
                         !key.equals("Type")&&
                         !key.equals("Main Address")){
-                    update = String.format("insert into info values " +
+                    /*update = String.format("insert into info values " +
                             "(%d,%d,%d,%s,true)",
-                            infoId,organisation.getId(),getInfoTypeId(key),organisation.getData().get(key));
-                    statement.executeUpdate(update);
+                            infoId,organisation.getId(),getInfoTypeId(key),organisation.getData().get(key));*/
+                    update = "insert into info values (?,?,?,?,true)";
+                    PreparedStatement preparedStatementInfo = connection.prepareStatement(update);
+                    preparedStatementInfo.setInt(1,infoId);
+                    preparedStatementInfo.setInt(2,organisation.getId());
+                    preparedStatementInfo.setInt(3,getInfoTypeId(key));
+                    preparedStatementInfo.setString(4,organisation.getData().get(key));
+                    preparedStatementInfo.executeUpdate();
+                    //statement.executeUpdate(update);
                     infoId++;
                 }
             }
@@ -438,6 +438,8 @@ public class DBtoApp {
             throwables.printStackTrace();
         }
     }
+    /**
+     * редактирование переданной организации*/
     public void editOrganisationData(Organisation organisation,HashMap<String,String> newValues){
         /*удаленные*/
         try{
@@ -472,18 +474,24 @@ public class DBtoApp {
             }
             /*таблица info*/
             ArrayList<String> keySet = new ArrayList<>(organisation.getData().keySet());
+            keySet.remove("Type");
+            keySet.remove("Main Address");
+            keySet.remove("Name");
             Statement statement = connection.createStatement();
             String sql = String.format("select info.info_id ,info.type_info_id ,type_info.column_names,info.\"data\",info.active_or_not " +
                     "from info,type_info where type_info.id = info.type_info_id and company_id = %d",organisation.getId());
             ResultSet resultSetInfo = statement.executeQuery(sql);
             while (resultSetInfo.next()){
+                System.out.println(resultSetInfo.getInt(1)+" "+resultSetInfo.getInt(2)+" "+resultSetInfo.getString(3)+
+                        " "+resultSetInfo.getString(4)+" "+resultSetInfo.getBoolean(5));
+
                 if(resultSetInfo.getBoolean(5)){
                     if(!organisation.getData().containsKey(resultSetInfo.getString(3))){ //если информацию удалили
-                        String sqlUpdate = String.format("update info set active_or_not = false where info.info_id = %d",resultSetInfo.getInt(2));
+                        String sqlUpdate = String.format("update info set active_or_not = false where info.info_id = %d",resultSetInfo.getInt(1));
                         connection.createStatement().executeUpdate(sqlUpdate);
                     }
                     //добавить новое значение если такого же типа уже существовало ранее
-                   else if(organisation.getData().get(resultSetInfo.getString(3)).equals(resultSetInfo.getString(4))){
+                   else if(!organisation.getData().get(resultSetInfo.getString(3)).equals(resultSetInfo.getString(4))){
                         String sqlUpdate = String.format("update info set active_or_not = false where info.info_id = %d",resultSetInfo.getInt(1));
                         connection.createStatement().executeUpdate(sqlUpdate);
                         sqlUpdate = "insert into info values(?,?,?,?,true)";
@@ -493,6 +501,7 @@ public class DBtoApp {
                         preparedStatement.setInt(3,resultSetInfo.getInt(2));
                         preparedStatement.setString(4,organisation.getData().get(resultSetInfo.getString(3)));
                         keySet.remove(resultSetInfo.getString(3));
+                        preparedStatement.executeUpdate();
                     }
                 }
             }
@@ -503,13 +512,15 @@ public class DBtoApp {
                 preparedStatement.setInt(2,organisation.getId());
                 preparedStatement.setInt(3,getInfoTypeId(key));
                 preparedStatement.setString(4,organisation.getData().get(key));
+                preparedStatement.executeUpdate();
             }
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        /*изменяемые*/
     }
+    /**
+     * удаление переданной организации*/
     public void deleteOrganisation(Organisation organisation){
         try{
             String sql = String.format("delete from info where company_id = %d",organisation.getId());

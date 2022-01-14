@@ -11,7 +11,6 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 
-/*TODO заменить боковые панели на scrolpanel и добавить перенос текста*/
 public class Main extends Application {
     static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/postgres";
     static final String USER = "admin";
